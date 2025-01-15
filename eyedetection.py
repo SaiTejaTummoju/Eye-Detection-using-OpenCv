@@ -1,32 +1,54 @@
-import numpy as np
+import os
 import cv2
 
-
+# Initialize video capture
 cap = cv2.VideoCapture(0)
-gray=cv2.cvtColor(cap,cvtColor.RGB2GRAY)
-while(True):
-    ret, frame = cap.read()
 
-    frame = cv2.resize(frame, (0,0), fx=0.5,fy=0.5)
-    cv2.imshow("Frame",frame)
-
-    ch = cv2.waitKey(1)
-    if ch & 0xFF == ord('q'):
-        break
-
-path = "haarcascade_eye.xml"
-
-print("path: ", path)
+# Load the Haar Cascade for eye detection
+path = cv2.data.haarcascades + 'haarcascade_eye.xml'
 eye_cascade = cv2.CascadeClassifier(path)
 
-eyes = eye_cascade.detectMultiScale(cap, scaleFactor=1.02,minNeighbors=20,minSize=(10,10))
-print(len(eyes))
+if not eye_cascade.empty():
+    print("Cascade classifier loaded successfully.")
+else:
+    print("Error loading cascade classifier.")
 
-for (x, y, w, h) in eyes:
-	xc = (x + x+w)/2
-	yc = (y + y+h)/2
-	radius = w/2
-	cv2.circle(cap, (int(xc),int(yc)), int(radius), (255,0,0), 2)
-cv2.imshow("Eyes",cap)
-cv2.waitKey(0)
+frame_count = 0  # Counter to process every nth frame
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("Failed to grab frame")
+        break
+
+    # Resize frame to a smaller size for faster processing
+    frame = cv2.resize(frame, (320, 240))
+
+    # Convert to grayscale for detection
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Process every 2nd frame to reduce lag
+    if frame_count % 2 == 0:
+        eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=10, minSize=(20, 20))
+    else:
+        eyes = []  # Skip processing
+
+    frame_count += 1
+
+    # Draw circles around the detected eyes
+    for (x, y, w, h) in eyes:
+        xc = (x + x + w) // 2
+        yc = (y + y + h) // 2
+        radius = w // 2
+        cv2.circle(frame, (xc, yc), radius, (255, 0, 0), 2)
+
+    # Display the frame with eye detection
+    cv2.imshow("Frame", frame)
+
+    # Break loop if 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Release the capture and close windows
+cap.release()
 cv2.destroyAllWindows()
