@@ -68,5 +68,5 @@ Ensure you have the following installed on your system:
 Feel free to fork this repository, submit issues, and propose improvements via pull requests.
 
 ## Author
-Tummoju Sai Teja
+[SaiTejaTummoju](https://github.com/SaiTejaTummoju)
 
